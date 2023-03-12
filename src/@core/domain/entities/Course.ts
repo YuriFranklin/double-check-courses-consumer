@@ -1,4 +1,4 @@
-import Error, { errorSchema } from './Error';
+import Error, { CreateErrorParams, errorSchema } from './Error';
 import crypto from 'crypto';
 import * as z from 'zod';
 import Content, { ContentSchema, CreateContentParams } from './Content';
@@ -35,8 +35,9 @@ export type CourseProps = {
     checked?: boolean;
 };
 
-export type CreateCourseParams = Omit<CourseProps, 'contents'> & {
+export type CreateCourseParams = Omit<CourseProps, 'contents' | 'errors'> & {
     contents?: CreateContentParams[];
+    errors?: CreateErrorParams[];
 };
 
 export default class Course {
@@ -73,6 +74,8 @@ export default class Course {
             ...this.props,
             createdAt: this.props.createdAt.toISOString(),
             editedAt: this.props.createdAt.toISOString(),
+            contents:
+                this.props.contents.map((content) => content.toJSON()) || [],
             errors: this.props.errors.map((error) => error.toJSON()) || [],
         };
     }
