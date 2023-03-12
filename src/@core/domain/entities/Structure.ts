@@ -40,6 +40,10 @@ export default class Structure {
         return new Structure(validatedProps);
     }
 
+    public get templates(): Template[] {
+        return this.props.templates;
+    }
+
     toJSON() {
         return {
             ...this.props,

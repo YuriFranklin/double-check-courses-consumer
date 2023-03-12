@@ -24,6 +24,10 @@ export type CreateTemplateParams = Omit<TemplateProps, 'children'> & {
     children?: CreateTemplateParams[];
 };
 
+export type TemplateToJSON = Omit<Required<TemplateProps>, 'children'> & {
+    children?: TemplateToJSON[];
+};
+
 export const TemplateSchema = z.lazy(() =>
     z.object({
         id: z.string().optional(),
@@ -84,7 +88,7 @@ export default class Template {
         return this.props.children;
     }
 
-    public toJSON() {
+    public toJSON(): TemplateToJSON {
         return {
             ...this.props,
             children: this.props.children.map((child) => child.toJSON()) || [],

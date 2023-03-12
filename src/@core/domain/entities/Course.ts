@@ -1,6 +1,7 @@
 import Error, { errorSchema } from './Error';
 import crypto from 'crypto';
 import * as z from 'zod';
+import Content, { ContentSchema, CreateContentParams } from './Content';
 
 export const courseSchema = z.object({
     id: z.string().optional(),
@@ -9,6 +10,12 @@ export const courseSchema = z.object({
         .array(errorSchema)
         .optional()
         .transform((errors) => errors?.map((error) => Error.create(error))),
+    contents: z
+        .array(ContentSchema)
+        .optional()
+        .transform((contents) =>
+            contents?.map((content) => Content.create(content)),
+        ),
     createdAt: z.date().optional(),
     editedAt: z.date().optional(),
     courseId: z.string(),
@@ -20,6 +27,7 @@ export type CourseProps = {
     id?: string;
     name?: string;
     errors?: Error[];
+    contents?: Content[];
     createdAt?: Date;
     editedAt?: Date;
     courseId: string;
@@ -27,7 +35,9 @@ export type CourseProps = {
     checked?: boolean;
 };
 
-export type CreateCourseParams = z.input<typeof courseSchema>;
+export type CreateCourseParams = Omit<CourseProps, 'contents'> & {
+    contents?: CreateContentParams[];
+};
 
 export default class Course {
     public props: Required<CourseProps>;
@@ -36,12 +46,17 @@ export default class Course {
             ...props,
             id: props.id || crypto.randomUUID(),
             name: props.name || '',
+            contents: props.contents || [],
             errors: props.errors || [],
             checked: props.checked || false,
             doubleCheckId: props.doubleCheckId || '',
             createdAt: props.createdAt ? new Date(props.createdAt) : new Date(),
             editedAt: props.editedAt ? new Date(props.editedAt) : new Date(),
         };
+    }
+
+    public get contents(): Content[] {
+        return this.props.contents;
     }
 
     static create(props: CreateCourseParams) {
