@@ -29,6 +29,12 @@ export default class CompareCourseService {
                 structure.templates,
                 course.contents,
             ),
+            ...this.compareStructure({
+                contents: course.contents,
+                courseId,
+                courseName: name,
+                templates: structure.templates,
+            }),
         ];
     }
 
@@ -108,7 +114,7 @@ export default class CompareCourseService {
 
         const xors = templates
             .filter((template) => template.toJSON().xor?.length)
-            .map((template, index) => {
+            .map((template) => {
                 return {
                     template,
                     parent,
@@ -279,5 +285,94 @@ export default class CompareCourseService {
         parentTemplate?: Template;
         courseName: string;
         courseId: string;
-    }): Error[] {}
+    }): Error[] {
+        const {
+            message,
+            name,
+            severity,
+            type,
+            id: errorId,
+        } = ErrorDictionary['TEMPLATE_NOT_FOUND'];
+
+        const errors: Error[] = [];
+
+        templates.forEach((template) => {
+            const {
+                id: itemId,
+                type: itemType,
+                isOptional,
+                name: itemName,
+            } = template.toJSON();
+
+            const children = template.children;
+
+            const beforeTemplates = this.getBeforeTemplates(
+                template,
+                templates,
+            );
+
+            const findedContent = contents.find((content, index) =>
+                this.isTemplateEqualsOfContent({
+                    content,
+                    template,
+                    beforeTemplates,
+                    beforeContent: contents.at(index - 1),
+                    parentContent,
+                    parentTemplate,
+                    courseName,
+                }),
+            );
+
+            if (!findedContent && !isOptional)
+                return errors.push(
+                    Error.create({
+                        errorId,
+                        courseId,
+                        itemName,
+                        itemType,
+                        message,
+                        name,
+                        severity,
+                        type,
+                        itemId,
+                    }),
+                );
+
+            if (findedContent && children.length)
+                this.compareStructure({
+                    contents: findedContent.children,
+                    templates: children,
+                    parentContent: findedContent,
+                    parentTemplate: template,
+                    courseName: courseName,
+                    courseId,
+                }).forEach((error) => errors.push(error));
+        });
+
+        return errors;
+    }
+
+    private getBeforeTemplates(
+        template: Template,
+        templates: Template[],
+    ): Template[] {
+        const { beforeAlt, beforeId, xor, id } = template.toJSON();
+
+        return templates.filter((templateFilter) => {
+            const temp = templateFilter.toJSON();
+            if (temp.id === beforeId) return temp;
+
+            const findedAlternativeId = beforeAlt.find(
+                (altId) => altId === temp.id,
+            );
+
+            if (findedAlternativeId) return temp;
+
+            const findedByXorId = xor.find(
+                (xorId) => xorId === temp.id && xorId !== id,
+            );
+
+            if (findedByXorId) return temp;
+        });
+    }
 }
