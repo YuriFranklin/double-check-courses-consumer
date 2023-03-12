@@ -1,4 +1,5 @@
 import Course from '../entities/Course';
+import Error from '../entities/Error';
 import Structure from '../entities/Structure';
 import CompareCourseService from '../services/CompareCourseService';
 
@@ -238,6 +239,8 @@ describe('CompareCourseService', () => {
                 course,
             );
 
-        console.log(errors);
+        errors.forEach((error) => {
+            expect(error).toBeInstanceOf(Error);
+        });
     });
 });

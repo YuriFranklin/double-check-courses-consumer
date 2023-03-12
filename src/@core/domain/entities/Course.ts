@@ -59,6 +59,10 @@ export default class Course {
         return this.props.contents;
     }
 
+    public setErrors(errors: Error[]) {
+        this.props.errors = errors;
+    }
+
     static create(props: CreateCourseParams) {
         const validatedProps = courseSchema.parse(props);
         return new Course(validatedProps);

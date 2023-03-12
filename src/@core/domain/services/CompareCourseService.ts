@@ -467,6 +467,12 @@ export default class CompareCourseService {
                 );
             }
 
+            this.compareAttributes({
+                content,
+                template: findedTemplate,
+                courseId,
+            }).forEach((error) => errors.push(error));
+
             if (children.length)
                 this.compareContentsAndAttributes({
                     contents: children,
@@ -477,6 +483,117 @@ export default class CompareCourseService {
                     courseId,
                 }).forEach((error) => errors.push(error));
         });
+
+        return errors;
+    }
+
+    private compareAttributes({
+        content,
+        template,
+        courseId,
+    }: {
+        content: Content;
+        template: Template;
+        courseId: string;
+    }): Error[] {
+        const errors: Error[] = [];
+
+        const {
+            name: contentName,
+            id: contentId,
+            description: contentDescription,
+            hasChildren: contentHasChildren,
+            disponibility: contentDisponibility,
+            type: contentType,
+        } = content.toJSON();
+
+        const {
+            description: templateDescription,
+            hasChildren: templateHasChildren,
+            disponibility: templateDisponibility,
+            type: templateType,
+            descriptionAlt: templateDescriptionAlt,
+        } = template.toJSON();
+
+        if (
+            contentDescription !== templateDescription ||
+            contentDescription !== templateDescriptionAlt
+        )
+            errors.push(
+                Error.create({
+                    errorId: ErrorDictionary['WRONG_DESCRIPTION'].id,
+                    courseId,
+                    itemName: contentName,
+                    itemType: contentType,
+                    message: ErrorDictionary['WRONG_DESCRIPTION'].message,
+                    name: ErrorDictionary['WRONG_DESCRIPTION'].name,
+                    severity: ErrorDictionary['WRONG_DESCRIPTION'].severity,
+                    type: ErrorDictionary['WRONG_DESCRIPTION'].type,
+                    itemId: contentId,
+                }),
+            );
+
+        if (templateHasChildren === true && contentHasChildren === false)
+            errors.push(
+                Error.create({
+                    errorId: ErrorDictionary['CONTENT_WITH_CHILDREN'].id,
+                    courseId,
+                    itemName: contentName,
+                    itemType: contentType,
+                    message: ErrorDictionary['CONTENT_WITH_CHILDREN'].message,
+                    name: ErrorDictionary['CONTENT_WITH_CHILDREN'].name,
+                    severity: ErrorDictionary['CONTENT_WITH_CHILDREN'].severity,
+                    type: ErrorDictionary['CONTENT_WITH_CHILDREN'].type,
+                    itemId: contentId,
+                }),
+            );
+
+        if (templateDisponibility === true && contentDisponibility === false)
+            errors.push(
+                Error.create({
+                    errorId: ErrorDictionary['CONTENT_ISNOT_VISIBLE'].id,
+                    courseId,
+                    itemName: contentName,
+                    itemType: contentType,
+                    message: ErrorDictionary['CONTENT_ISNOT_VISIBLE'].message,
+                    name: ErrorDictionary['CONTENT_ISNOT_VISIBLE'].name,
+                    severity: ErrorDictionary['CONTENT_ISNOT_VISIBLE'].severity,
+                    type: ErrorDictionary['CONTENT_ISNOT_VISIBLE'].type,
+                    itemId: contentId,
+                }),
+            );
+
+        if (templateDisponibility === false && contentDisponibility === true)
+            errors.push(
+                Error.create({
+                    errorId: ErrorDictionary['CONTENT_IS_VISIBLE'].id,
+                    courseId,
+                    itemName: contentName,
+                    itemType: contentType,
+                    message: ErrorDictionary['CONTENT_IS_VISIBLE'].message,
+                    name: ErrorDictionary['CONTENT_IS_VISIBLE'].name,
+                    severity: ErrorDictionary['CONTENT_IS_VISIBLE'].severity,
+                    type: ErrorDictionary['CONTENT_IS_VISIBLE'].type,
+                    itemId: contentId,
+                }),
+            );
+
+        if (templateType !== contentType)
+            errors.push(
+                Error.create({
+                    errorId: ErrorDictionary['CONTENT_TYPE_IS_DIFFERENT'].id,
+                    courseId,
+                    itemName: contentName,
+                    itemType: contentType,
+                    message:
+                        ErrorDictionary['CONTENT_TYPE_IS_DIFFERENT'].message,
+                    name: ErrorDictionary['CONTENT_TYPE_IS_DIFFERENT'].name,
+                    severity:
+                        ErrorDictionary['CONTENT_TYPE_IS_DIFFERENT'].severity,
+                    type: ErrorDictionary['CONTENT_TYPE_IS_DIFFERENT'].type,
+                    itemId: contentId,
+                }),
+            );
 
         return errors;
     }

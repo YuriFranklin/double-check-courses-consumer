@@ -1,9 +1,13 @@
 import CompareCourseService from '../../domain/services/CompareCourseService';
 import Course from '../../domain/entities/Course';
 import StructureGatewayInterface from '../../domain/gateways/StructureGatewayInterface';
+import CourseGatewayInterface from '../../domain/gateways/CourseGatewayInterface';
 
 export default class CompareCourseWithStructureUseCase {
-    constructor(private structureGateway: StructureGatewayInterface) {}
+    constructor(
+        private structureGateway: StructureGatewayInterface,
+        private courseGateway: CourseGatewayInterface,
+    ) {}
 
     public async execute(input: Input): Promise<Output> {
         const structure = await this.structureGateway.find(input.structureId);
@@ -12,11 +16,19 @@ export default class CompareCourseWithStructureUseCase {
 
         const compareService = new CompareCourseService();
 
-        const result =
+        const errors =
             compareService.compareCourseWithStructureAndGenerateErrors(
                 structure,
                 course,
             );
+
+        course.setErrors(errors);
+
+        const courseJSON = course.toJSON();
+
+        this.courseGateway.update(courseJSON.id, course);
+
+        return courseJSON;
     }
 }
 
