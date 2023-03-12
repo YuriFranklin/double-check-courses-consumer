@@ -16,7 +16,7 @@ export default class CompareCourseService {
         structure: Structure,
         course: Course,
     ): Error[] {
-        const { courseId, name } = course.toJSON();
+        const { courseId, name: courseName } = course.toJSON();
 
         return [
             ...this.generateWhitespacedContentsErrors(
@@ -25,14 +25,20 @@ export default class CompareCourseService {
             ),
             ...this.generateXorContentsErrors(
                 courseId,
-                name,
+                courseName,
                 structure.templates,
                 course.contents,
             ),
-            ...this.compareStructure({
+            ...this.compareTemplates({
                 contents: course.contents,
                 courseId,
-                courseName: name,
+                courseName,
+                templates: structure.templates,
+            }),
+            ...this.compareContentsAndAttributes({
+                contents: course.contents,
+                courseId,
+                courseName,
                 templates: structure.templates,
             }),
         ];
@@ -271,7 +277,7 @@ export default class CompareCourseService {
         return possibleNames;
     }
 
-    private compareStructure({
+    private compareTemplates({
         contents,
         templates,
         parentContent,
@@ -339,7 +345,7 @@ export default class CompareCourseService {
                 );
 
             if (findedContent && children.length)
-                this.compareStructure({
+                this.compareTemplates({
                     contents: findedContent.children,
                     templates: children,
                     parentContent: findedContent,
@@ -374,5 +380,104 @@ export default class CompareCourseService {
 
             if (findedByXorId) return temp;
         });
+    }
+
+    private compareContentsAndAttributes({
+        contents,
+        templates,
+        parentContent,
+        parentTemplate,
+        courseName,
+        courseId,
+    }: {
+        contents: Content[];
+        templates: Template[];
+        parentContent?: Content;
+        parentTemplate?: Template;
+        courseName: string;
+        courseId: string;
+    }): Error[] {
+        const {
+            message,
+            name,
+            severity,
+            type,
+            id: errorId,
+        } = ErrorDictionary['CONTENT_NOT_FOUNDED_IN_STRUCTURE'];
+
+        const errors: Error[] = [];
+
+        contents.forEach((content, index) => {
+            const {
+                id: itemId,
+                name: itemName,
+                type: itemType,
+            } = content.toJSON();
+
+            const { children } = content;
+
+            const findedTemplate = templates.find((template, index) =>
+                this.isTemplateEqualsOfContent({
+                    content,
+                    template,
+                    beforeTemplates: this.getBeforeTemplates(
+                        template,
+                        template.children,
+                    ),
+                    beforeContent: contents.at(index - 1),
+                    parentContent,
+                    parentTemplate,
+                    courseName,
+                }),
+            );
+
+            if (!findedTemplate) {
+                children.length &&
+                    errors.push(
+                        Error.create({
+                            errorId:
+                                ErrorDictionary['CONTENT_WITH_CHILDREN'].id,
+                            courseId,
+                            itemName,
+                            itemType,
+                            message:
+                                ErrorDictionary['CONTENT_WITH_CHILDREN']
+                                    .message,
+                            name: ErrorDictionary['CONTENT_WITH_CHILDREN'].name,
+                            severity:
+                                ErrorDictionary['CONTENT_WITH_CHILDREN']
+                                    .severity,
+                            type: ErrorDictionary['CONTENT_WITH_CHILDREN'].type,
+                            itemId,
+                        }),
+                    );
+
+                return errors.push(
+                    Error.create({
+                        errorId,
+                        courseId,
+                        itemName,
+                        itemType,
+                        message,
+                        name,
+                        severity,
+                        type,
+                        itemId,
+                    }),
+                );
+            }
+
+            if (children.length)
+                this.compareContentsAndAttributes({
+                    contents: children,
+                    templates: findedTemplate.children,
+                    parentContent: content,
+                    parentTemplate: findedTemplate,
+                    courseName,
+                    courseId,
+                }).forEach((error) => errors.push(error));
+        });
+
+        return errors;
     }
 }
