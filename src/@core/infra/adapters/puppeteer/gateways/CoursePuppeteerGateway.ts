@@ -8,7 +8,7 @@ import Puppeteer from '../PuppeteerAdapter';
 import ContentPuppeteerMapper from '../mappers/ContentPuppeteerMapper';
 import CoursePuppeteerMapper from '../mappers/CoursePuppeteerMapper';
 
-export class CoursePuppeteerGateway
+export default class CoursePuppeteerGateway
     extends Learn
     implements CourseGatewayInterface
 {
@@ -55,7 +55,10 @@ export class CoursePuppeteerGateway
         }
     }
 
-    public async find(courseExternalId: string): Promise<Course> {
+    public async find(
+        courseExternalId: string,
+        fetchContents?: boolean,
+    ): Promise<Course> {
         try {
             const page = await this.openPage();
 
@@ -80,16 +83,17 @@ export class CoursePuppeteerGateway
 
             const { externalId, id, name, termId } = course;
 
-            const contents = await this.getContentsRecurrence({
-                courseId: course.id,
-            });
+            const contents = fetchContents
+                ? await this.getContentsRecurrence({
+                      courseId: id,
+                  })
+                : [];
 
             return CoursePuppeteerMapper.toDomainEntity({
-                externalId,
-                termId,
+                courseId: id,
                 id,
                 name,
-                contents,
+                contents: contents.map((content) => content.toJSON()),
             });
         } catch (error) {
             throw error;
@@ -138,7 +142,7 @@ export class CoursePuppeteerGateway
                 } = contentLearn;
 
                 const beforeId =
-                    position > 0 && result.results[position - 1].id;
+                    position > 0 ? result.results[position - 1].id : undefined;
 
                 const disponibility =
                     availability.available === 'Yes' ? true : false;
@@ -157,10 +161,11 @@ export class CoursePuppeteerGateway
                         hasChildren: false,
                     });
 
-                const children = await this.getContentsRecurrence({
-                    courseId,
-                    parentId: contentLearn.id,
-                });
+                const children =
+                    (await this.getContentsRecurrence({
+                        courseId,
+                        parentId: contentLearn.id,
+                    })) || [];
 
                 const content = ContentPuppeteerMapper.toDomainEntity({
                     id,
@@ -171,9 +176,8 @@ export class CoursePuppeteerGateway
                     disponibility,
                     type,
                     hasChildren: children.length ? true : false,
+                    children: children.map((content) => content.toJSON()),
                 });
-
-                content.updateChildren(children);
 
                 return content;
             });

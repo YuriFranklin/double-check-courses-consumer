@@ -1,26 +1,8 @@
 import Content from '../../../../domain/entities/Content';
 
 export default class ContentPuppeteerMapper {
-    public static toDomainEntity({
-        disponibility,
-        hasChildren,
-        id,
-        name,
-        description,
-        type,
-        beforeId,
-        parentId,
-    }: ContentProps) {
-        return Content.create({
-            disponibility,
-            hasChildren,
-            id,
-            name,
-            description,
-            type,
-            beforeId,
-            parentId,
-        });
+    public static toDomainEntity(input: ContentProps) {
+        return Content.create(input);
     }
 }
 
@@ -33,4 +15,5 @@ export type ContentProps = {
     type: string;
     hasChildren: boolean;
     parentId?: string;
+    children?: ContentProps[];
 };
