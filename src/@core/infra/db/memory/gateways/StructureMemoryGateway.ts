@@ -1,0 +1,44 @@
+import Structure from '../../../../domain/entities/Structure';
+import StructureGatewayInterface from '../../../../domain/gateways/StructureGatewayInterface';
+
+export default class StructureMemoryGateway
+    implements StructureGatewayInterface
+{
+    private structures: Structure[] = [];
+
+    async update(id: any, structure: Structure): Promise<void> {
+        const index = this.structures.findIndex(
+            (dCheck) => dCheck.toJSON().id === id,
+        );
+        if (!index) throw new Error('Item not founded.');
+
+        this.structures[index] = structure;
+    }
+
+    async find(id: string): Promise<Structure> {
+        const finded = this.structures.find(
+            (structure) => structure.toJSON().id === id,
+        );
+
+        if (!finded) throw new Error('Item not finded.');
+
+        return finded;
+    }
+
+    async insert(structure: Structure): Promise<void> {
+        this.structures.push(structure);
+    }
+
+    async findAll(): Promise<Structure[]> {
+        return this.structures;
+    }
+
+    async delete(id: string): Promise<void> {
+        const index = this.structures.findIndex(
+            (dCheck) => dCheck.toJSON().id === id,
+        );
+        if (!index) throw new Error('Item not founded.');
+
+        this.structures.splice(index, 1);
+    }
+}
