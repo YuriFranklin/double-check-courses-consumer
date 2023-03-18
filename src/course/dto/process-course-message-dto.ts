@@ -28,6 +28,9 @@ export class ProcessCourseMessageDto {
     @IsDateString()
     @IsOptional()
     editedAt?: Date;
+
+    @IsString()
+    structureId: string;
 }
 
 type Error = {

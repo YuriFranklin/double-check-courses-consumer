@@ -12,7 +12,7 @@ export default class CompareCourseWithStructureUseCase {
     public async execute(input: Input): Promise<Output> {
         const structure = await this.structureGateway.find(input.structureId);
 
-        const course = Course.create(input.course);
+        const course = Course.create({ ...input.course, checked: true });
 
         const compareService = new CompareCourseService();
 

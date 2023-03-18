@@ -90,7 +90,8 @@ export default class CoursePuppeteerGateway
                 : [];
 
             return CoursePuppeteerMapper.toDomainEntity({
-                courseId: id,
+                termId,
+                courseId: externalId,
                 id,
                 name,
                 contents: contents.map((content) => content.toJSON()),

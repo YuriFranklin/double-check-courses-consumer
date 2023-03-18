@@ -5,12 +5,16 @@ import {
     MessagePattern,
     Payload,
 } from '@nestjs/microservices';
+import FindLearnCourseUseCase from '../@core/application/usecases/FindLearnCourseUseCase';
 import { CourseService } from './course.service';
 import { ProcessCourseMessageDto } from './dto/process-course-message-dto';
 
 @Controller()
 export class CourseController {
-    constructor(private readonly courseService: CourseService) {}
+    constructor(
+        private readonly courseService: CourseService,
+        private findLearnCourseUseCase: FindLearnCourseUseCase,
+    ) {}
 
     @MessagePattern('double-check')
     async consumer(
@@ -18,7 +22,13 @@ export class CourseController {
         @Ctx() context: KafkaContext,
     ) {
         const hearbeat = context.getHeartbeat();
-        //await hearbeat();
-        console.log(message);
+
+        const learnCourse = await this.findLearnCourseUseCase.execute(
+            message.courseId,
+        );
+
+        await hearbeat();
+
+        console.log(learnCourse);
     }
 }

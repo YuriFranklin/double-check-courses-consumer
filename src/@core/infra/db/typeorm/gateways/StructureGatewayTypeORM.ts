@@ -6,7 +6,9 @@ import StructureGatewayInterface from '../../../../domain/gateways/StructureGate
 import Structure from '../../../../domain/entities/Structure';
 import StructureTypeORMMapper from '../mappers/StructureTypeORMMapper';
 
-export class StructureGatewayTypeORM implements StructureGatewayInterface {
+export default class StructureGatewayTypeORM
+    implements StructureGatewayInterface
+{
     private ormRepository: Repository<StructureSchema>;
 
     constructor(private dataSource: DataSource) {

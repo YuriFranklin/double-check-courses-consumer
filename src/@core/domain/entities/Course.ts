@@ -21,6 +21,7 @@ export const courseSchema = z.object({
     courseId: z.string(),
     doubleCheckId: z.string().optional(),
     checked: z.boolean().optional(),
+    termId: z.string().optional(),
 });
 
 export type CourseProps = {
@@ -33,6 +34,7 @@ export type CourseProps = {
     courseId: string;
     doubleCheckId?: string;
     checked?: boolean;
+    termId?: string;
 };
 
 export type CreateCourseParams = Omit<CourseProps, 'contents' | 'errors'> & {
@@ -53,6 +55,7 @@ export default class Course {
             doubleCheckId: props.doubleCheckId || '',
             createdAt: props.createdAt ? new Date(props.createdAt) : new Date(),
             editedAt: props.editedAt ? new Date(props.editedAt) : new Date(),
+            termId: props.termId || '',
         };
     }
 

@@ -1,7 +1,15 @@
 import Course from '../../../../domain/entities/Course';
+import CourseSchema from '../entities/Course';
 import CourseGatewayInterface from '../../../../domain/gateways/CourseGatewayInterface';
+import { DataSource, Repository } from 'typeorm';
 
 export default class CourseGatewayTypeORM implements CourseGatewayInterface {
+    private ormRepository: Repository<CourseSchema>;
+
+    constructor(private dataSource: DataSource) {
+        this.ormRepository = this.dataSource.getRepository(CourseSchema);
+    }
+
     insert(course: Course): Promise<void> {
         throw new Error('Method not implemented.');
     }

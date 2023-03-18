@@ -76,7 +76,7 @@ export default class Learn extends Puppeteer {
             let cookie: Protocol.Network.Cookie[];
 
             await page
-                .waitForNavigation({ waitUntil: 'load' })
+                .waitForNavigation({ waitUntil: 'networkidle0' })
                 .then(async () => {
                     cookie = await page.cookies();
                 });
