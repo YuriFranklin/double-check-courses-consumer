@@ -11,8 +11,7 @@ export class ProcessCourseMessageDto {
     name?: string;
 
     @IsString()
-    @IsOptional()
-    id?: string;
+    id: string;
 
     @IsString()
     @IsNotEmpty()
@@ -31,6 +30,9 @@ export class ProcessCourseMessageDto {
 
     @IsString()
     structureId: string;
+
+    @IsString()
+    doubleCheckId: string;
 }
 
 type Error = {

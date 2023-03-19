@@ -25,7 +25,7 @@ export type CreateTemplateParams = Omit<TemplateProps, 'children'> & {
 };
 
 export type TemplateToJSON = Omit<Required<TemplateProps>, 'children'> & {
-    children?: TemplateToJSON[];
+    children: TemplateToJSON[];
 };
 
 export const TemplateSchema = z.lazy(() =>

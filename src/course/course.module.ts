@@ -14,11 +14,27 @@ import CoursePuppeteerGateway from '../@core/infra/adapters/puppeteer/gateways/C
 import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { getDataSourceToken } from '@nestjs/typeorm/dist';
+import FindCourseUseCase from '../@core/application/usecases/FindCourseUseCase';
+import { ClientKafka, ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
     imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forFeature([StructureSchema, CourseSchema]),
+        ClientsModule.register([
+            {
+                name: 'KAFKA_SERVICE',
+                transport: Transport.KAFKA,
+                options: {
+                    client: {
+                        requestTimeout: 30000,
+                        brokers: [
+                            `${process.env.KAFKA_HOSTNAME}:${process.env.KAFKA_PORT}`,
+                        ],
+                    },
+                },
+            },
+        ]),
     ],
     controllers: [CourseController],
     providers: [
@@ -52,10 +68,23 @@ import { getDataSourceToken } from '@nestjs/typeorm/dist';
             inject: [StructureGatewayTypeORM, CourseGatewayTypeORM],
         },
         {
+            provide: FindCourseUseCase,
+            useFactory: (courseGateway: CourseGatewayInterface) =>
+                new FindCourseUseCase(courseGateway),
+            inject: [CourseGatewayTypeORM],
+        },
+        {
             provide: FindLearnCourseUseCase,
             useFactory: (courseGateway: CoursePuppeteerGateway) =>
                 new FindLearnCourseUseCase(courseGateway),
             inject: [CoursePuppeteerGateway],
+        },
+        {
+            provide: 'KAFKA_PRODUCER',
+            useFactory: async (kafkaService: ClientKafka) => {
+                return kafkaService.connect();
+            },
+            inject: ['KAFKA_SERVICE'],
         },
     ],
 })

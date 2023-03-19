@@ -44,6 +44,19 @@ type CourseInput = {
     createdAt: Date;
     editedAt?: Date;
     doubleCheckId?: string;
+    contents?: Content[];
+};
+
+export type Content = {
+    id: string;
+    name: string;
+    description?: string;
+    beforeId?: string;
+    type: string;
+    hasChildren: boolean;
+    children?: Content[];
+    parentId?: string;
+    disponibility: boolean;
 };
 
 type Output = {

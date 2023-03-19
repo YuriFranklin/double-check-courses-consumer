@@ -6,7 +6,7 @@ interface ErrorModel {
     readonly message: string;
 }
 
-const ErrorDictionary: Record<string, ErrorModel> = {
+const ErrorDictionary = {
     CONTENT_NOT_FOUNDED_IN_STRUCTURE: {
         id: '1',
         message: 'Content not founded.',
@@ -79,4 +79,7 @@ const ErrorDictionary: Record<string, ErrorModel> = {
     },
 };
 
-export default ErrorDictionary;
+export default ErrorDictionary as Record<
+    keyof typeof ErrorDictionary,
+    ErrorModel
+>;

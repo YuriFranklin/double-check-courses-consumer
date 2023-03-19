@@ -16,8 +16,8 @@ export type CreateContentParams = Omit<ContentProps, 'children'> & {
     children?: CreateContentParams[];
 };
 
-export type ContentToJSON = Omit<ContentProps, 'children'> & {
-    children?: ContentToJSON[];
+export type ContentToJSON = Omit<Required<ContentProps>, 'children'> & {
+    children: ContentToJSON[];
 };
 
 export const ContentSchema = z.lazy(() =>
